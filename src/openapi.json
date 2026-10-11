@@ -1,0 +1,294 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "API de eSports - Perfiles y Rosters",
+        "version": "1.0.0",
+        "description": "Documentación interactiva para el API de gestión de equipos de eSports."
+    },
+    "servers": [
+        {
+            "url": "http://localhost:3000/api/v1",
+            "description": "Servidor local"
+        }
+    ],
+    "paths": {
+        "/jugadores": {
+            "get": {
+                "summary": "Listar todos los jugadores",
+                "tags": [
+                    "Jugadores"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Crear un jugador",
+                "tags": [
+                    "Jugadores"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Creado"
+                    },
+                    "409": {
+                        "description": "Conflicto"
+                    }
+                }
+            }
+        },
+        "/jugadores/{id}": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "get": {
+                "summary": "Obtener detalle de un jugador",
+                "tags": [
+                    "Jugadores"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "No encontrado"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Actualizar un jugador",
+                "tags": [
+                    "Jugadores"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Eliminar un jugador",
+                "tags": [
+                    "Jugadores"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Sin contenido"
+                    }
+                }
+            }
+        },
+        "/rosters": {
+            "get": {
+                "summary": "Listar todos los rosters",
+                "tags": [
+                    "Rosters"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Crear un roster",
+                "tags": [
+                    "Rosters"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Creado"
+                    }
+                }
+            }
+        },
+        "/rosters/{id}": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "get": {
+                "summary": "Obtener detalle de un roster",
+                "tags": [
+                    "Rosters"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Actualizar un roster",
+                "tags": [
+                    "Rosters"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Eliminar un roster",
+                "tags": [
+                    "Rosters"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Sin contenido"
+                    }
+                }
+            }
+        },
+        "/rosters/{id}/jugadores": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "get": {
+                "summary": "Listar jugadores de un roster",
+                "tags": [
+                    "Asignaciones"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Asignar jugador a roster",
+                "tags": [
+                    "Asignaciones"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Creado"
+                    },
+                    "409": {
+                        "description": "Conflicto"
+                    }
+                }
+            }
+        },
+        "/rosters/{id}/jugadores/{id_jugador}": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                },
+                {
+                    "name": "id_jugador",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "put": {
+                "summary": "Cambiar rol en roster",
+                "tags": [
+                    "Asignaciones"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "409": {
+                        "description": "Conflicto"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Quitar jugador del roster",
+                "tags": [
+                    "Asignaciones"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Sin contenido"
+                    }
+                }
+            }
+        },
+        "/roles": {
+            "get": {
+                "summary": "Listar roles válidos",
+                "tags": [
+                    "Auxiliares"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/estados": {
+            "get": {
+                "summary": "Listar estados válidos",
+                "tags": [
+                    "Auxiliares"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/tipos-roster": {
+            "get": {
+                "summary": "Listar tipos de roster",
+                "tags": [
+                    "Auxiliares"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "summary": "Verificar estado del API",
+                "tags": [
+                    "Auxiliares"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -3,12 +3,15 @@ import cors from 'cors';
 import rutasJugadores from './routes/jugadores.routes.js';
 import rutasRosters from './routes/rosters.routes.js';
 import rutasAuxiliares from './routes/auxiliares.routes.js';
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocument from './openapi.json' with { type: "json" };
 
 const app = express();
 const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use('/api/v1/jugadores', rutasJugadores);
 
