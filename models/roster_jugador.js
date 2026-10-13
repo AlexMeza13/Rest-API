@@ -14,12 +14,35 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Roster_Jugador.init({
-    id_roster: DataTypes.INTEGER,
-    id_jugador: DataTypes.INTEGER,
+    id_roster: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'Rosters',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE'
+    },
+    id_jugador: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'Jugadors',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE'
+    },
     rol_en_roster: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Roster_Jugador',
+    indexes: [{
+      unique: true,
+      name: 'uq_roster_jugadors_roster_jugador',
+      fields: ['id_roster', 'id_jugador']
+    }]
   });
   return Roster_Jugador;
 };

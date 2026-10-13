@@ -10,7 +10,9 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       nickname: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true
       },
       nombre_real: {
         type: Sequelize.STRING

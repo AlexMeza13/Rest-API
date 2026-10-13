@@ -1,6 +1,6 @@
 # API de eSports - Gestión de Perfiles y Rosters
 
-API RESTful desarrollada en Node.js para la gestión de equipos de eSports. Permite administrar jugadores, crear rosters y asignar titulares/suplentes aplicando reglas de negocio específicas (MVC).
+API REST desarrollada en Node.js para la gestión de equipos de eSports. Permite administrar jugadores, crear rosters y asignar titulares/suplentes aplicando reglas de negocio específicas (MVC).
 
 ## Tecnologías Utilizadas
 * **Backend:** Node.js (ES Modules), Express.js
@@ -10,14 +10,14 @@ API RESTful desarrollada en Node.js para la gestión de equipos de eSports. Perm
 
 ## Requisitos Previos
 Para ejecutar este proyecto de manera local, necesitas tener instalado:
-* Node.js (v18 o superior)
+* Node.js (v20.10 o superior)
 * Docker Desktop (para la base de datos)
 
 ## Instalación y Configuración
 
 1. **Clonar el repositorio y entrar a la carpeta:**
    ```bash
-   git clone <URL_DE_TU_REPOSITORIO>
+   git clone "URL del repositorio"
    cd eaSports
    ```
 
@@ -27,15 +27,19 @@ Para ejecutar este proyecto de manera local, necesitas tener instalado:
    ```
 
 3. **Levantar la base de datos MySQL con Docker:**
-   Asegúrate de tener Docker abierto y ejecuta:
+   Inicia Docker Desktop y, desde la carpeta `eaSports`, ejecuta:
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
-4. **Ejecutar las migraciones:**
-   Esto creará las tablas necesarias en la base de datos automáticamente:
+4. **Revisar y ejecutar las migraciones:**
+   Primero revisa qué migraciones están aplicadas y cuáles faltan:
    ```bash
-   npx sequelize-cli db:migrate
+   npm run db:migrate:status
+   ```
+   Aplica las migraciones pendientes:
+   ```bash
+   npm run db:migrate
    ```
 
 ## Ejecución del Servidor
@@ -43,10 +47,10 @@ Para ejecutar este proyecto de manera local, necesitas tener instalado:
 Para iniciar el servidor en modo desarrollo (con recarga automática):
 
 ```bash
-npx nodemon src/app.js
+npm run dev
 ```
 
-El servidor estará escuchando en http://localhost:3000.
+El servidor estará escuchando en http://localhost:3000. Para iniciarlo sin recarga automática usa `npm start`.
 
 ## Documentación de la API
 
@@ -54,6 +58,10 @@ La API cuenta con una interfaz gráfica interactiva para probar todos los endpoi
 
 Una vez que el servidor esté corriendo, abre tu navegador y visita:
 http://localhost:3000/api/v1/docs
+
+## Probar la API con REST Client
+
+Con el servidor y MySQL en ejecución, abre `test-collection.http` en Visual Studio Code y ejecuta las solicitudes en orden con la extensión REST Client. La colección incluye casos de éxito y error para jugadores, rosters y asignaciones, y reutiliza IDs capturados de respuestas anteriores.
 
 ## Reglas de Negocio Implementadas
 * **RN-01:** El nickname de un jugador debe ser único.

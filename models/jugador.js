@@ -17,7 +17,11 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Jugador.init({
-    nickname: DataTypes.STRING,
+    nickname: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true
+    },
     nombre_real: DataTypes.STRING,
     pais: DataTypes.STRING,
     rol: DataTypes.STRING,

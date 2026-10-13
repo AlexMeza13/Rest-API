@@ -1,0 +1,217 @@
+@baseUrl = http://localhost:3000/api/v1
+@nicknameFaker = Faker-{{$guid}}
+@nicknameChovy = Chovy-{{$guid}}
+@temporada = 2026
+
+# Se debe ejecutar en orden ya que los IDs se toman en cuenta para las demas peticiones
+
+### Health Id de Codigo esperado: 200
+# @name health
+GET {{baseUrl}}/health
+
+### Listar roles Id de Codigo esperado: 200
+# @name listarRoles
+GET {{baseUrl}}/roles
+
+### Listar estados Id de Codigo esperado: 200
+# @name listarEstados
+GET {{baseUrl}}/estados
+
+### Listar tipos de roster Id de Codigo esperado: 200
+# @name listarTiposRoster
+GET {{baseUrl}}/tipos-roster
+
+### Crear jugador para CRUD Id de Codigo esperado: 201
+# @name crearJugador
+POST {{baseUrl}}/jugadores
+Content-Type: application/json
+
+{
+  "nickname": "{{nicknameFaker}}",
+  "nombre_real": "Jugador de prueba",
+  "pais": "MX",
+  "rol": "Mid",
+  "estado": "activo"
+}
+
+### Listar jugadores Id de Codigo esperado: 200
+# @name listarJugadores
+GET {{baseUrl}}/jugadores
+
+### Obtener jugador creado Id de Codigo esperado: 200
+# @name obtenerJugador
+GET {{baseUrl}}/jugadores/{{crearJugador.response.body.$.id}}
+
+### Actualizar jugador Id de Codigo esperado: 200
+# @name actualizarJugador
+PUT {{baseUrl}}/jugadores/{{crearJugador.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "nickname": "{{nicknameFaker}}",
+  "nombre_real": "Jugador actualizado",
+  "pais": "MX",
+  "rol": "Mid",
+  "estado": "inactivo"
+}
+
+### Crear jugador con rol inválido Id de Codigo esperado: 400
+# @name jugadorInvalido
+POST {{baseUrl}}/jugadores
+Content-Type: application/json
+
+{
+  "nickname": "http-invalido-{{$guid}}",
+  "nombre_real": "Jugador inválido",
+  "pais": "MX",
+  "rol": "Inválido",
+  "estado": "activo"
+}
+
+### Crear otro jugador Mid para validar conflicto de titulares Id de Codigo esperado: 201
+# @name crearJugadorMismoRol
+POST {{baseUrl}}/jugadores
+Content-Type: application/json
+
+{
+  "nickname": "{{nicknameChovy}}",
+  "nombre_real": "Segundo jugador Mid",
+  "pais": "MX",
+  "rol": "Mid",
+  "estado": "activo"
+}
+
+### Crear nickname duplicado Id de Codigo esperado: 409
+# @name nicknameDuplicado
+POST {{baseUrl}}/jugadores
+Content-Type: application/json
+
+{
+  "nickname": "{{nicknameFaker}}",
+  "nombre_real": "Nickname repetido",
+  "pais": "MX",
+  "rol": "Mid",
+  "estado": "activo"
+}
+
+### Obtener jugador inexistente Id de Codigo esperado: 404
+# @name jugadorNoExiste
+GET {{baseUrl}}/jugadores/999999999
+
+### Crear roster para CRUD Id de Codigo esperado: 201
+# @name crearRoster
+POST {{baseUrl}}/rosters
+Content-Type: application/json
+
+{
+  "nombre": "Roster de prueba",
+  "tipo": "Principal",
+  "temporada": "{{temporada}}"
+}
+
+### Listar rosters Id de Codigo esperado: 200
+# @name listarRosters
+GET {{baseUrl}}/rosters
+
+### Obtener roster creado Id de Codigo esperado: 200
+# @name obtenerRoster
+GET {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}
+
+### Actualizar roster Id de Codigo esperado: 200
+# @name actualizarRoster
+PUT {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "nombre": "Roster actualizado",
+  "tipo": "Academy",
+  "temporada": "{{temporada}}"
+}
+
+### Crear roster con tipo inválido Id de Codigo esperado: 400
+# @name rosterInvalido
+POST {{baseUrl}}/rosters
+Content-Type: application/json
+
+{
+  "nombre": "Roster inválido",
+  "tipo": "Inválido",
+  "temporada": "{{temporada}}"
+}
+
+### Obtener roster inexistente Id de Codigo esperado: 404
+# @name rosterNoExiste
+GET {{baseUrl}}/rosters/999999999
+
+### Asignar jugador Mid como titular Id de Codigo esperado: 201
+# @name asignarJugador
+POST {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}/jugadores
+Content-Type: application/json
+
+{
+  "id_jugador": {{crearJugador.response.body.$.id}},
+  "rol_en_roster": "Titular"
+}
+
+### Listar jugadores del roster Id de Codigo esperado: 200
+# @name listarJugadoresRoster
+GET {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}/jugadores
+
+### Asignar otro titular con rol Mid Id de Codigo esperado: 409 (rol titular duplicado)
+# @name titularRolDuplicado
+POST {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}/jugadores
+Content-Type: application/json
+
+{
+  "id_jugador": {{crearJugadorMismoRol.response.body.$.id}},
+  "rol_en_roster": "Titular"
+}
+
+### Asignar con rol inválido Id de Codigo esperado: 400
+# @name asignacionInvalida
+POST {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}/jugadores
+Content-Type: application/json
+
+{
+  "id_jugador": {{crearJugadorMismoRol.response.body.$.id}},
+  "rol_en_roster": "Inválido"
+}
+
+### Asignar a roster inexistente Id de Codigo esperado: 404
+# @name rosterAsignacionNoExiste
+POST {{baseUrl}}/rosters/999999999/jugadores
+Content-Type: application/json
+
+{
+  "id_jugador": {{crearJugadorMismoRol.response.body.$.id}},
+  "rol_en_roster": "Suplente"
+}
+
+### Actualizar rol de asignación Id de Codigo esperado: 200
+# @name actualizarAsignacion
+PUT {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}/jugadores/{{crearJugador.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "rol_en_roster": "Suplente"
+}
+
+### Quitar jugador del roster Id de Codigo esperado: 204
+# @name quitarJugadorRoster
+DELETE {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}/jugadores/{{crearJugador.response.body.$.id}}
+
+### Quitar asignación inexistente Id de Codigo esperado: 404
+# @name asignacionNoExiste
+DELETE {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}/jugadores/{{crearJugador.response.body.$.id}}
+
+### Eliminar roster Id de Codigo esperado: 204
+# @name eliminarRoster
+DELETE {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}
+
+### Eliminar jugador creado Id de Codigo esperado: 204
+# @name eliminarJugador
+DELETE {{baseUrl}}/jugadores/{{crearJugador.response.body.$.id}}
+
+### Eliminar segundo jugador creado Id de Codigo esperado: 204
+# @name eliminarJugadorMismoRol
+DELETE {{baseUrl}}/jugadores/{{crearJugadorMismoRol.response.body.$.id}}
