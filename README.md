@@ -4,6 +4,7 @@ API REST desarrollada en Node.js para la gestión de equipos de eSports. Permite
 
 ## Tecnologías Utilizadas
 * **Backend:** Node.js (ES Modules), Express.js
+* **Frontend:** Vue 3, Vite
 * **Base de Datos:** MySQL (Dockerizada)
 * **ORM:** Sequelize
 * **Documentación:** Swagger UI (OpenAPI 3.0)
@@ -71,6 +72,20 @@ npm run dev
 ```
 
 El servidor estará escuchando en http://localhost:3000. Para iniciarlo sin recarga automática usa `npm start`.
+
+## Ejecución del Frontend
+
+Con MySQL y el backend en ejecución, abre otra terminal desde la carpeta `frontend`:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Abre http://localhost:5173 e inicia sesión con una cuenta existente. Durante el desarrollo, Vite reenvía las solicitudes de `/api` al backend local en `http://localhost:3000`. Para generar una compilación de producción ejecuta `npm run build` desde `frontend`.
+
+Si el frontend debe conectarse a un origen de API distinto, configura `VITE_API_BASE_URL` antes de ejecutar `npm run build` (por ejemplo, `https://api.example.com/api/v1`). El backend debe permitir el origen correspondiente en `CLIENT_URL` y CORS con credenciales.
 
 ## Documentación de la API
 
