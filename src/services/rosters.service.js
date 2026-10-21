@@ -9,10 +9,31 @@ class RosterServiceError extends Error {
     }
 }
 
-export const crearRoster = ({ nombre, juego = 'League of Legends', tipo, temporada }) =>
-    Roster.create({ nombre, juego, tipo, temporada });
+export const crearRoster = ({ nombre, juego = 'League of Legends', tipo, temporada }, idEntrenador) =>
+    Roster.create({ nombre, juego, tipo, temporada, id_entrenador: idEntrenador });
 
 export const listarRosters = () => Roster.findAll();
+
+export const listarRostersDeEntrenador = (idEntrenador) => Roster.findAll({
+    where: { id_entrenador: idEntrenador },
+    order: [['nombre', 'ASC']]
+});
+
+export const listarRostersDeJugador = async (idJugador) => {
+    if (!idJugador) return [];
+
+    const asignaciones = await Roster_Jugador.findAll({
+        where: { id_jugador: idJugador },
+        attributes: ['id_roster']
+    });
+    const idsRosters = asignaciones.map(({ id_roster }) => id_roster);
+    if (idsRosters.length === 0) return [];
+
+    return Roster.findAll({
+        where: { id: idsRosters },
+        order: [['nombre', 'ASC']]
+    });
+};
 
 export const obtenerRoster = async (id) => {
     const roster = await Roster.findByPk(id, {

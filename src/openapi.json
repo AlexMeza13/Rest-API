@@ -3,7 +3,7 @@
   "info": {
     "title": "API de eSports - Perfiles y Rosters",
     "version": "1.0.0",
-    "description": "Documentacion interactiva para el API de gestion de equipos de eSports."
+    "description": "Documentacion interactiva para el API de gestion de equipos de eSports. Admin y entrenador gestionan jugadores y rosters; jugador solo consulta rosters donde su perfil esta asignado y sus integrantes. Solo admin puede gestionar cuentas. Las operaciones que modifican datos requieren X-CSRF-Token."
   },
   "servers": [
     {
@@ -11,10 +11,304 @@
       "description": "Servidor local"
     }
   ],
+  "security": [
+    {
+      "cookieAuth": []
+    }
+  ],
   "paths": {
+    "/auth/login": {
+      "post": {
+        "summary": "Iniciar sesion",
+        "description": "Establece las cookies de sesión JWT HttpOnly y CSRF.",
+        "tags": [
+          "Autenticacion"
+        ],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sesion iniciada; devuelve el usuario y el token CSRF."
+          },
+          "400": {
+            "description": "Falta email o contraseña."
+          },
+          "401": {
+            "description": "Credenciales invalidas."
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "summary": "Cerrar sesion",
+        "tags": [
+          "Autenticacion"
+        ],
+        "security": [
+          {
+            "cookieAuth": [],
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sesion cerrada y cookies eliminadas."
+          },
+          "401": {
+            "description": "No hay una sesion valida."
+          },
+          "403": {
+            "description": "Falta o es invalido el token CSRF."
+          }
+        }
+      }
+    },
+    "/auth/verify": {
+      "get": {
+        "summary": "Verificar sesion",
+        "tags": [
+          "Autenticacion"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sesion activa y datos basicos del usuario."
+          },
+          "401": {
+            "description": "No hay una sesion valida."
+          }
+        }
+      }
+    },
+    "/usuarios": {
+      "get": {
+        "summary": "Listar cuentas",
+        "description": "Disponible solo para admin. Nunca devuelve hashes de contraseñas.",
+        "tags": [
+          "Cuentas"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de cuentas sin datos de contraseña.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Usuario"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticación requerida."
+          },
+          "403": {
+            "description": "Se requiere rol admin."
+          }
+        }
+      },
+      "post": {
+        "summary": "Crear cuenta",
+        "description": "Disponible solo para admin. La cuenta se crea activa; la contraseña requiere al menos 8 caracteres. Para rol jugador, id_jugador debe vincularse a un perfil existente no asociado a otra cuenta.",
+        "tags": [
+          "Cuentas"
+        ],
+        "security": [
+          {
+            "cookieAuth": [],
+            "csrfToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "minLength": 8,
+                    "maxLength": 72,
+                    "description": "Al menos 8 caracteres y un máximo de 72 bytes UTF-8."
+                  },
+                  "rol": {
+                    "type": "string",
+                    "enum": [
+                      "admin",
+                      "entrenador",
+                      "jugador"
+                    ],
+                    "default": "entrenador"
+                  },
+                  "id_jugador": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Obligatorio si rol es jugador; debe ser un perfil existente sin otra cuenta vinculada.",
+                    "example": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Cuenta creada sin devolver el hash de la contraseña.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Email, contraseña o rol inválido."
+          },
+          "401": {
+            "description": "Autenticación requerida."
+          },
+          "403": {
+            "description": "Se requiere rol admin o token CSRF válido."
+          },
+          "409": {
+            "description": "Ya existe una cuenta con ese correo."
+          }
+        }
+      }
+    },
+    "/usuarios/{id}": {
+      "put": {
+        "summary": "Cambiar rol, estado o perfil vinculado de una cuenta",
+        "description": "Disponible solo para admin. No permite cambiar el propio rol/estado ni quitar acceso al último admin activo. El rol jugador requiere id_jugador; solo una cuenta puede vincular cada perfil.",
+        "tags": [
+          "Cuentas"
+        ],
+        "security": [
+          {
+            "cookieAuth": [],
+            "csrfToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "minProperties": 1,
+                "properties": {
+                  "rol": {
+                    "type": "string",
+                    "enum": [
+                      "admin",
+                      "entrenador",
+                      "jugador"
+                    ]
+                  },
+                  "estado": {
+                    "type": "string",
+                    "enum": [
+                      "activo",
+                      "inactivo"
+                    ]
+                  },
+                  "id_jugador": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "nullable": true,
+                    "description": "Perfil a vincular; obligatorio cuando el rol resultante es jugador. En otros roles se limpia.",
+                    "example": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cuenta actualizada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID, rol o estado inválido."
+          },
+          "401": {
+            "description": "Autenticación requerida."
+          },
+          "403": {
+            "description": "Se requiere rol admin o token CSRF válido."
+          },
+          "404": {
+            "description": "Cuenta no encontrada."
+          },
+          "409": {
+            "description": "Acción no permitida para la cuenta propia o el último admin activo."
+          }
+        }
+      }
+    },
     "/jugadores": {
       "get": {
         "summary": "Listar todos los jugadores",
+        "description": "Disponible para admin y entrenador. El entrenador consulta estos perfiles para agregarlos a sus rosters; solo admin puede crear, editar o eliminar perfiles.",
         "tags": [
           "Jugadores"
         ],
@@ -39,8 +333,15 @@
       },
       "post": {
         "summary": "Crear un jugador",
+        "description": "Disponible solo para admin. El entrenador no puede registrar perfiles desde cero.",
         "tags": [
           "Jugadores"
+        ],
+        "security": [
+          {
+            "cookieAuth": [],
+            "csrfToken": []
+          }
         ],
         "requestBody": {
           "description": "Todos los campos son obligatorios. El nickname debe ser unico; rol y estado deben usar valores del catalogo.",
@@ -76,6 +377,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Se requiere rol admin."
           },
           "409": {
             "description": "Ya existe un jugador con el mismo nickname.",
@@ -152,6 +456,9 @@
               }
             }
           },
+          "403": {
+            "description": "El entrenador no puede administrar rosters de otro usuario."
+          },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
           }
@@ -159,8 +466,15 @@
       },
       "put": {
         "summary": "Actualizar un jugador",
+        "description": "Disponible solo para admin.",
         "tags": [
           "Jugadores"
+        ],
+        "security": [
+          {
+            "cookieAuth": [],
+            "csrfToken": []
+          }
         ],
         "requestBody": {
           "description": "Reemplaza los datos del jugador. Se requieren nickname, nombre_real, pais, rol y estado; el nickname debe ser unico.",
@@ -197,6 +511,9 @@
               }
             }
           },
+          "403": {
+            "description": "Se requiere rol admin."
+          },
           "404": {
             "description": "No existe un jugador con el ID indicado.",
             "content": {
@@ -223,6 +540,9 @@
               }
             }
           },
+          "403": {
+            "description": "El entrenador no puede administrar rosters de otro usuario."
+          },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
           }
@@ -230,8 +550,15 @@
       },
       "delete": {
         "summary": "Eliminar un jugador",
+        "description": "Disponible solo para admin.",
         "tags": [
           "Jugadores"
+        ],
+        "security": [
+          {
+            "cookieAuth": [],
+            "csrfToken": []
+          }
         ],
         "responses": {
           "204": {
@@ -249,6 +576,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Se requiere rol admin."
           },
           "404": {
             "description": "No existe un jugador con el ID indicado.",
@@ -271,7 +601,8 @@
     },
     "/rosters": {
       "get": {
-        "summary": "Listar todos los rosters",
+        "summary": "Listar los rosters disponibles para la cuenta",
+        "description": "Admin recibe todos los rosters; entrenador solo los que creo; jugador solo los que incluyen su perfil.",
         "tags": [
           "Rosters"
         ],
@@ -296,8 +627,15 @@
       },
       "post": {
         "summary": "Crear un roster",
+        "description": "El roster queda asociado a la cuenta autenticada que lo crea. Admin puede ver y administrar todos los rosters.",
         "tags": [
           "Rosters"
+        ],
+        "security": [
+          {
+            "cookieAuth": [],
+            "csrfToken": []
+          }
         ],
         "requestBody": {
           "description": "Se requieren nombre, tipo y temporada. juego es opcional y usa \"League of Legends\" cuando se omite.",
@@ -356,6 +694,7 @@
       ],
       "get": {
         "summary": "Obtener detalle de un roster",
+        "description": "Admin puede consultar todos los rosters. Entrenador solo puede consultar los que creo; jugador solo puede consultar los que incluyen su perfil.",
         "tags": [
           "Rosters"
         ],
@@ -396,6 +735,9 @@
               }
             }
           },
+          "403": {
+            "description": "El entrenador no puede consultar un roster de otra cuenta."
+          },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
           }
@@ -403,8 +745,15 @@
       },
       "put": {
         "summary": "Actualizar un roster",
+        "description": "Admin puede actualizar cualquier roster; entrenador solo puede actualizar los que creo.",
         "tags": [
           "Rosters"
+        ],
+        "security": [
+          {
+            "cookieAuth": [],
+            "csrfToken": []
+          }
         ],
         "requestBody": {
           "description": "Reemplaza nombre, tipo y temporada. Se requieren los tres campos; este endpoint no actualiza juego.",
@@ -454,6 +803,9 @@
               }
             }
           },
+          "403": {
+            "description": "El entrenador no puede administrar un roster de otra cuenta."
+          },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
           }
@@ -461,8 +813,15 @@
       },
       "delete": {
         "summary": "Eliminar un roster",
+        "description": "Admin puede eliminar cualquier roster; entrenador solo puede eliminar los que creo.",
         "tags": [
           "Rosters"
+        ],
+        "security": [
+          {
+            "cookieAuth": [],
+            "csrfToken": []
+          }
         ],
         "responses": {
           "204": {
@@ -494,6 +853,9 @@
               }
             }
           },
+          "403": {
+            "description": "El entrenador no puede administrar un roster de otra cuenta."
+          },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
           }
@@ -516,6 +878,7 @@
       ],
       "get": {
         "summary": "Listar jugadores de un roster",
+        "description": "Las cuentas jugador solo pueden consultar integrantes de rosters donde su perfil esta asignado; entrenador solo puede consultar rosters propios.",
         "tags": [
           "Asignaciones"
         ],
@@ -559,6 +922,9 @@
               }
             }
           },
+          "403": {
+            "description": "La cuenta no tiene acceso a este roster."
+          },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
           }
@@ -568,6 +934,12 @@
         "summary": "Asignar jugador a roster",
         "tags": [
           "Asignaciones"
+        ],
+        "security": [
+          {
+            "cookieAuth": [],
+            "csrfToken": []
+          }
         ],
         "requestBody": {
           "description": "El jugador debe existir y no estar ya asignado. id_jugador debe ser un entero positivo; rol_en_roster acepta Titular o Suplente.",
@@ -630,6 +1002,9 @@
               }
             }
           },
+          "403": {
+            "description": "El entrenador no puede administrar un roster de otra cuenta."
+          },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
           }
@@ -665,6 +1040,12 @@
         "summary": "Cambiar rol en roster",
         "tags": [
           "Asignaciones"
+        ],
+        "security": [
+          {
+            "cookieAuth": [],
+            "csrfToken": []
+          }
         ],
         "requestBody": {
           "description": "Actualiza el rol de la asignacion existente. rol_en_roster acepta unicamente Titular o Suplente.",
@@ -727,6 +1108,9 @@
               }
             }
           },
+          "403": {
+            "description": "El entrenador no puede administrar un roster de otra cuenta."
+          },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
           }
@@ -736,6 +1120,12 @@
         "summary": "Quitar jugador del roster",
         "tags": [
           "Asignaciones"
+        ],
+        "security": [
+          {
+            "cookieAuth": [],
+            "csrfToken": []
+          }
         ],
         "responses": {
           "204": {
@@ -767,6 +1157,9 @@
               }
             }
           },
+          "403": {
+            "description": "El entrenador no puede administrar un roster de otra cuenta."
+          },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
           }
@@ -779,6 +1172,7 @@
         "tags": [
           "Auxiliares"
         ],
+        "security": [],
         "responses": {
           "200": {
             "description": "OK",
@@ -809,6 +1203,7 @@
         "tags": [
           "Auxiliares"
         ],
+        "security": [],
         "responses": {
           "200": {
             "description": "OK",
@@ -836,6 +1231,7 @@
         "tags": [
           "Auxiliares"
         ],
+        "security": [],
         "responses": {
           "200": {
             "description": "OK",
@@ -863,6 +1259,7 @@
         "tags": [
           "Auxiliares"
         ],
+        "security": [],
         "responses": {
           "200": {
             "description": "OK",
@@ -879,6 +1276,18 @@
     }
   },
   "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "jwt_token"
+      },
+      "csrfToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-CSRF-Token"
+      }
+    },
     "responses": {
       "InternalServerError": {
         "description": "Error interno inesperado al procesar la solicitud, por ejemplo, por un fallo en la base de datos.",
@@ -895,6 +1304,72 @@
       }
     },
     "schemas": {
+      "Usuario": {
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "rol",
+          "estado",
+          "id_jugador",
+          "jugador",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "jugador@equipo.com"
+          },
+          "rol": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "entrenador",
+              "jugador"
+            ]
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "activo",
+              "inactivo"
+            ]
+          },
+          "id_jugador": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1
+          },
+          "jugador": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 1
+              },
+              "nickname": {
+                "type": "string",
+                "example": "Faker"
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "Jugador": {
         "type": "object",
         "properties": {
@@ -1012,6 +1487,12 @@
           "temporada": {
             "type": "string",
             "example": "2026"
+          },
+          "id_entrenador": {
+            "type": "integer",
+            "nullable": true,
+            "description": "ID de la cuenta que creo el roster; admin puede ver todos los propietarios.",
+            "example": 10
           },
           "jugadores": {
             "type": "array",

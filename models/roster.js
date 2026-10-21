@@ -14,13 +14,26 @@ module.exports = (sequelize, DataTypes) => {
         through: models.Roster_Jugador,
         foreignKey: 'id_roster'
       });
+      Roster.belongsTo(models.Usuario, {
+        foreignKey: 'id_entrenador'
+      });
     }
   }
   Roster.init({
     nombre: DataTypes.STRING,
     juego: DataTypes.STRING,
     tipo: DataTypes.STRING,
-    temporada: DataTypes.STRING
+    temporada: DataTypes.STRING,
+    id_entrenador: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'Usuarios',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL'
+    }
   }, {
     sequelize,
     modelName: 'Roster',

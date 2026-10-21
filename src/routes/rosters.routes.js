@@ -10,16 +10,21 @@ import {
     obtenerJugadoresDeRoster,
     actualizarRolEnRoster
 } from '../controllers/rosters.controller.js';
+import {
+    requerirAccesoRoster,
+    requerirPropietarioRoster,
+    requerirRol
+} from '../middleware/auth.middleware.js';
 const router = express.Router();
 
-router.post('/', crearRoster);
-router.get('/', listarRosters);
-router.get('/:id', obtenerRoster);
-router.put('/:id', actualizarRoster);
-router.delete('/:id', eliminarRoster);
-router.get('/:id/jugadores', obtenerJugadoresDeRoster);
-router.post('/:id/jugadores', asignarJugador);
-router.put('/:id/jugadores/:id_jugador', actualizarRolEnRoster);
-router.delete('/:id/jugadores/:id_jugador', quitarJugador);
+router.post('/', requerirRol('admin', 'entrenador'), crearRoster);
+router.get('/', requerirRol('admin', 'entrenador', 'jugador'), listarRosters);
+router.get('/:id', requerirAccesoRoster, obtenerRoster);
+router.put('/:id', requerirRol('admin', 'entrenador'), requerirPropietarioRoster, actualizarRoster);
+router.delete('/:id', requerirRol('admin', 'entrenador'), requerirPropietarioRoster, eliminarRoster);
+router.get('/:id/jugadores', requerirAccesoRoster, obtenerJugadoresDeRoster);
+router.post('/:id/jugadores', requerirRol('admin', 'entrenador'), requerirPropietarioRoster, asignarJugador);
+router.put('/:id/jugadores/:id_jugador', requerirRol('admin', 'entrenador'), requerirPropietarioRoster, actualizarRolEnRoster);
+router.delete('/:id/jugadores/:id_jugador', requerirRol('admin', 'entrenador'), requerirPropietarioRoster, quitarJugador);
 
 export default router;

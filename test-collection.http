@@ -1,9 +1,22 @@
 @baseUrl = http://localhost:3000/api/v1
+@adminEmail = {{$dotenv ADMIN_EMAIL}}
+@adminPassword = {{$dotenv ADMIN_PASSWORD}}
+@csrfToken = {{login.response.body.$.csrfToken}}
 @nicknameFaker = Faker-{{$guid}}
 @nicknameChovy = Chovy-{{$guid}}
 @temporada = 2026
 
 # Se debe ejecutar en orden ya que los IDs se toman en cuenta para las demas peticiones
+
+### Iniciar sesion como admin
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
 
 ### Health Id de Codigo esperado: 200
 # @name health
@@ -25,6 +38,7 @@ GET {{baseUrl}}/tipos-roster
 # @name crearJugador
 POST {{baseUrl}}/jugadores
 Content-Type: application/json
+X-CSRF-Token: {{csrfToken}}
 
 {
   "nickname": "{{nicknameFaker}}",
@@ -46,6 +60,7 @@ GET {{baseUrl}}/jugadores/{{crearJugador.response.body.$.id}}
 # @name actualizarJugador
 PUT {{baseUrl}}/jugadores/{{crearJugador.response.body.$.id}}
 Content-Type: application/json
+X-CSRF-Token: {{csrfToken}}
 
 {
   "nickname": "{{nicknameFaker}}",
@@ -59,6 +74,7 @@ Content-Type: application/json
 # @name jugadorInvalido
 POST {{baseUrl}}/jugadores
 Content-Type: application/json
+X-CSRF-Token: {{csrfToken}}
 
 {
   "nickname": "http-invalido-{{$guid}}",
@@ -72,6 +88,7 @@ Content-Type: application/json
 # @name crearJugadorMismoRol
 POST {{baseUrl}}/jugadores
 Content-Type: application/json
+X-CSRF-Token: {{csrfToken}}
 
 {
   "nickname": "{{nicknameChovy}}",
@@ -85,6 +102,7 @@ Content-Type: application/json
 # @name nicknameDuplicado
 POST {{baseUrl}}/jugadores
 Content-Type: application/json
+X-CSRF-Token: {{csrfToken}}
 
 {
   "nickname": "{{nicknameFaker}}",
@@ -102,6 +120,7 @@ GET {{baseUrl}}/jugadores/999999999
 # @name crearRoster
 POST {{baseUrl}}/rosters
 Content-Type: application/json
+X-CSRF-Token: {{csrfToken}}
 
 {
   "nombre": "Roster de prueba",
@@ -121,6 +140,7 @@ GET {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}
 # @name actualizarRoster
 PUT {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}
 Content-Type: application/json
+X-CSRF-Token: {{csrfToken}}
 
 {
   "nombre": "Roster actualizado",
@@ -132,6 +152,7 @@ Content-Type: application/json
 # @name rosterInvalido
 POST {{baseUrl}}/rosters
 Content-Type: application/json
+X-CSRF-Token: {{csrfToken}}
 
 {
   "nombre": "Roster inválido",
@@ -147,6 +168,7 @@ GET {{baseUrl}}/rosters/999999999
 # @name asignarJugador
 POST {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}/jugadores
 Content-Type: application/json
+X-CSRF-Token: {{csrfToken}}
 
 {
   "id_jugador": {{crearJugador.response.body.$.id}},
@@ -161,6 +183,7 @@ GET {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}/jugadores
 # @name titularRolDuplicado
 POST {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}/jugadores
 Content-Type: application/json
+X-CSRF-Token: {{csrfToken}}
 
 {
   "id_jugador": {{crearJugadorMismoRol.response.body.$.id}},
@@ -171,6 +194,7 @@ Content-Type: application/json
 # @name asignacionInvalida
 POST {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}/jugadores
 Content-Type: application/json
+X-CSRF-Token: {{csrfToken}}
 
 {
   "id_jugador": {{crearJugadorMismoRol.response.body.$.id}},
@@ -181,6 +205,7 @@ Content-Type: application/json
 # @name rosterAsignacionNoExiste
 POST {{baseUrl}}/rosters/999999999/jugadores
 Content-Type: application/json
+X-CSRF-Token: {{csrfToken}}
 
 {
   "id_jugador": {{crearJugadorMismoRol.response.body.$.id}},
@@ -191,6 +216,7 @@ Content-Type: application/json
 # @name actualizarAsignacion
 PUT {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}/jugadores/{{crearJugador.response.body.$.id}}
 Content-Type: application/json
+X-CSRF-Token: {{csrfToken}}
 
 {
   "rol_en_roster": "Suplente"
@@ -199,19 +225,33 @@ Content-Type: application/json
 ### Quitar jugador del roster Id de Codigo esperado: 204
 # @name quitarJugadorRoster
 DELETE {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}/jugadores/{{crearJugador.response.body.$.id}}
+X-CSRF-Token: {{csrfToken}}
 
 ### Quitar asignación inexistente Id de Codigo esperado: 404
 # @name asignacionNoExiste
 DELETE {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}/jugadores/{{crearJugador.response.body.$.id}}
+X-CSRF-Token: {{csrfToken}}
 
 ### Eliminar roster Id de Codigo esperado: 204
 # @name eliminarRoster
 DELETE {{baseUrl}}/rosters/{{crearRoster.response.body.$.id}}
+X-CSRF-Token: {{csrfToken}}
 
 ### Eliminar jugador creado Id de Codigo esperado: 204
 # @name eliminarJugador
 DELETE {{baseUrl}}/jugadores/{{crearJugador.response.body.$.id}}
+X-CSRF-Token: {{csrfToken}}
 
 ### Eliminar segundo jugador creado Id de Codigo esperado: 204
 # @name eliminarJugadorMismoRol
 DELETE {{baseUrl}}/jugadores/{{crearJugadorMismoRol.response.body.$.id}}
+X-CSRF-Token: {{csrfToken}}
+
+### Verificar sesión
+# @name verificarSesion
+GET {{baseUrl}}/auth/verify
+
+### Cerrar sesión
+# @name logout
+POST {{baseUrl}}/auth/logout
+X-CSRF-Token: {{csrfToken}}

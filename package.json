@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
+    "user:create-admin": "node scripts/create-admin.js",
     "db:migrate:status": "sequelize-cli db:migrate:status",
     "db:migrate": "sequelize-cli db:migrate",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -15,8 +16,12 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
+    "dotenv": "^18.0.8",
     "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.24.5",
     "sequelize": "^6.37.8",
     "swagger-ui-express": "^5.0.1"

@@ -59,6 +59,11 @@ export const actualizarJugador = async (id, datos) => {
 };
 
 export const eliminarJugador = async (id) => {
+    const cuentaVinculada = await db.Usuario.findOne({ where: { id_jugador: id } });
+    if (cuentaVinculada) {
+        throw new JugadorServiceError(409, 'No se puede eliminar un perfil vinculado a una cuenta');
+    }
+
     const eliminados = await Jugador.destroy({ where: { id } });
     if (!eliminados) throw new JugadorServiceError(404, 'Jugador no encontrado');
 };

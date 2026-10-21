@@ -6,13 +6,14 @@ import {
     actualizarJugador,
     eliminarJugador
 } from '../controllers/jugadores.controller.js';
+import { requerirRol } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
-router.post('/', crearJugador);
+router.post('/', requerirRol('admin'), crearJugador);
 router.get('/', listarJugadores);
 router.get('/:id', obtenerJugador);
-router.put('/:id', actualizarJugador);
-router.delete('/:id', eliminarJugador);
+router.put('/:id', requerirRol('admin'), actualizarJugador);
+router.delete('/:id', requerirRol('admin'), eliminarJugador);
 
 export default router;

@@ -55,12 +55,16 @@ export const crearRoster = async (req, res) => {
     const errorValidacion = validarDatosRoster(req.body, { includeJuego: true });
     if (errorValidacion) return responderErrorValidacion(res, errorValidacion);
 
-    const roster = await rostersService.crearRoster(req.body);
+    const roster = await rostersService.crearRoster(req.body, req.usuario.id);
     res.status(201).json(roster);
 };
 
 export const listarRosters = async (req, res) => {
-    const rosters = await rostersService.listarRosters();
+    const rosters = req.usuario.rol === 'jugador'
+        ? await rostersService.listarRostersDeJugador(req.usuario.id_jugador)
+        : req.usuario.rol === 'entrenador'
+            ? await rostersService.listarRostersDeEntrenador(req.usuario.id)
+            : await rostersService.listarRosters();
     res.status(200).json(rosters);
 };
 
